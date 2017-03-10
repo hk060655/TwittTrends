@@ -20,6 +20,11 @@ app.post('/display', function (req, res) {
   console.log("Request handler Display");
   console.log("Parsed: " + req.body.selection);
     var result = [];
+    var long = [];
+    var lat = [];
+    // var base1 = 5;
+    // var base2 = 5;
+    // var count = 0;
 
     elasticsearch = new Elasticsearch({
         accessKeyId: 'AKIAJ7OSXNTJ2ZYVZ5XQ',
@@ -31,13 +36,14 @@ app.post('/display', function (req, res) {
 
 
     elasticsearch.search({
-        index: 'tweets_test',
+        index: 'geo_tweets',
         type: 'tweets',
         body: {
+            size: 3000,
             query: {
-                match: { "text": req.body.selection }
+                match: { "text": req.body.selection },
             },
-        }
+        },
     },function (error, response,status) {
         if (error){
             console.log("search error: "+error);
@@ -49,11 +55,14 @@ app.post('/display', function (req, res) {
                 console.log(hit._source.user.location);
                 console.log(typeof hit._source.user.location);
                 if (hit._source.user.location != null) result.push(hit._source.user.location);
+                console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
+                long.push(hit._source.place.bounding_box.coordinates[0][1][0]);
+                lat.push(hit._source.place.bounding_box.coordinates[0][1][1]);
             })
         }
         console.log("result = " + result);
         // res.render('display', {num1: 37, num2: -95});
-        res.render('display', {locs: JSON.stringify(result)});
+        res.render('display', {longs: JSON.stringify(long), lats: JSON.stringify(lat)});//{locs: JSON.stringify(result)});
     });
 
     // console.log(searched);

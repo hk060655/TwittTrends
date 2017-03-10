@@ -15,26 +15,31 @@ html
     //    option(value="wall") wall
     //  input(type="submit" value="Search")
     div(id="map")
-      //script.
-      //  function initMap() {
-      //      //var loc = locs;
-      //      var uluru = {lat: #{num1}, lng: #{num2}};
-      //      //var uluru = {lat: 37, lng: -95};
-      //      var nwc = {lat: 40.8097609, lng: -73.9617941};
-      //      var map = new google.maps.Map(document.getElementById('map'), {zoom: 4, center: uluru});
-      //      var marker = new google.maps.Marker({position: uluru, map: map});
-      //      var marker2 = new google.maps.Marker({position: nwc, map:map});}
-      //script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
       script.
-          //document.getElementById("map").innerHTML = "#{locs}";
-          function showLoc() {
-              var text = "";
-              var i;
-              var loc = JSON.parse('!{locs}');
-              for (i = 0; i < loc.length; i++) {
-                  text += loc[i] + "<br>";
-              }
-              document.getElementById("map").innerHTML = text;
-          }
-          showLoc();
+        function initMap() {
+            var i;
+            var lat = JSON.parse("!{lats}");
+            var long = JSON.parse("!{longs}");
+            //var loc = locs;
+            //var uluru = {lat: #{num1}, lng: #{num2}};
+            //var uluru = {lat: 37, lng: -95};
+            var map = new google.maps.Map(document.getElementById('map'), {zoom: 4, center: {lat: 37, lng: -95}});
+            for (i = 0; i < lat.length; i++) {
+                var marker = new google.maps.Marker({position: {lat: parseFloat(lat[i]), lng:parseFloat(long[i])}, map: map});
+            }
+        }
+      script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
+      //script.
+      //    //document.getElementById("map").innerHTML = "#{locs}";
+      //    function showLoc() {
+      //        var text = "";
+      //        var i;
+      //        var lat = JSON.parse("!{lats}");
+      //        //var loc = JSON.parse('!{locs}');
+      //        for (i = 0; i < lat.length; i++) {
+      //            text += parseInt(lat[i]) + "<br>";
+      //        }
+      //        document.getElementById("map").innerHTML = text;
+      //    }
+      //    showLoc();
 
