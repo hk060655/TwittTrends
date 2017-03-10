@@ -12,7 +12,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/', function (req, res) {
-    res.send('Hello World');
+    console.log("Request handler Index");
+    res.render('index');
 })
 
 app.get('/index', function (req, res) {
@@ -77,7 +78,7 @@ app.post('/display', function (req, res) {
     // res.render('display');
 })
 
-app.set('portListen', process.env.PORT || 3000);
+app.set('portListen', process.env.PORT || 8081);
 
 var server = app.listen(app.get('portListen'), function () {
     var host = server.address().address;
