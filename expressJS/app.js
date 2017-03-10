@@ -77,7 +77,9 @@ app.post('/display', function (req, res) {
     // res.render('display');
 })
 
-var server = app.listen(3000, function () {
+app.set('portListen', process.env.PORT || 3000);
+
+var server = app.listen(app.get('portListen'), function () {
     var host = server.address().address;
     var port = server.address().port;
 
