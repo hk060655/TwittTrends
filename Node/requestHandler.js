@@ -52,50 +52,57 @@ function start(response) {
 function display(response, request) {
 	console.log("Request handler Display");
 
-	// fs.readFile("map.html", function(err, data) {
-	// 	response.writeHead(200, {"Content-Type": "text/html"});
-	// 	response.write(data);
-	// 	response.end();
+	fs.readFile("map.html", function(err, data) {
+		response.writeHead(200, {"Content-Type": "text/html"});
+		response.write(data);
+		response.end();
+	});
+
+	// var result = [];
+    //
+	// elasticsearch = new Elasticsearch({
+	// 	accessKeyId: 'AKIAJ7OSXNTJ2ZYVZ5XQ',
+	// 	secretAccessKey: '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',
+	// 	service: 'es',
+	// 	region: 'us-east-1',
+	// 	host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com'
 	// });
-
-	var res = "";
-
-	elasticsearch = new Elasticsearch({
-		accessKeyId: 'AKIAJ7OSXNTJ2ZYVZ5XQ',
-		secretAccessKey: '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',
-		service: 'es',
-		region: 'us-east-1',
-		host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com'
-	});
-
-
-	elasticsearch.search({  
-	  index: 'tweets_test',
-	  type: 'tweets',
-	  body: {
-	    query: {
-	      match: { "text": "great" }
-	    },
-	  }
-	},function (error, response,status) {
-	    if (error){
-	      console.log("search error: "+error)
-	    }
-	    else {
-	      console.log("--- Response ---");
-	      console.log(response);
-	      console.log("--- Hits ---");
-	      response.hits.hits.forEach(function(hit){
-	        console.log(hit);
-	        res.concat(hit._source.user.location);
-	      })
-	    }
-	});
-
-
-	response.writeHead(200, {"Content-Type": "text/html"});
-	response.write(res);
-	response.end();
+    //
+    //
+	// elasticsearch.search({
+	//   index: 'tweets_test',
+	//   type: 'tweets',
+	//   body: {
+	//     query: {
+	//       match: { "text": "great" }
+	//     },
+	//   }
+	// },function (error, res,status) {
+	//     if (error){
+	//       console.log("search error: "+error);
+	//     }
+	//     else {
+	//       console.log("--- Response ---");
+	//       console.log("--- Hits ---");
+	//       res.hits.hits.forEach(function(hit){
+	//         console.log(hit._source.user.location);
+	//         console.log(typeof hit._source.user.location);
+	//         result.push(hit._source.user.location);
+    //
+	//       })
+	//     }
+     //    console.log("result = " + result);
+	// });
+    //
+	// // console.log(searched);
+	// // console.log(typeof searched);
+    //
+    //
+	// response.writeHead(200, {"Content-Type": "text/html"});
+	// response.write('<html>' + '<body>' );
+	// console.log("in the middle");
+    // response.write('data' + '</body>' + '</html>');
+	// response.end();
 }
 
 // function upload(response, request) {
