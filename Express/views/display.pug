@@ -1,0 +1,13 @@
+html
+  head
+    title= "TwittMap"
+  body
+    h1= "TwittMap"
+    h4= "Please select a word you want to search in tweets"
+    form(action="/display" enctype="multipart/form-data" method="post")
+    select
+      option(value="rich") rich
+      option(value="strong") strong
+      option(value="voting") voting
+      option(value="wall") wall
+    input(type="submit" value="Search")
