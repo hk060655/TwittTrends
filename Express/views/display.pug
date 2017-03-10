@@ -2,26 +2,39 @@ html
   head
     title= "Display"
     style.
-        #map {height: 450px; width: 100%;}
+        #map {height: 500px; width: 100%;}
 
   body
     h1= "TwittMap"
-    h4= "Please select a word you want to search in tweets"
-    form(action="/display" enctype="multipart/form-data" method="post")
-      select(name="selection")
-        option(value="rich") rich
-        option(value="strong") strong
-        option(value="voting") voting
-        option(value="wall") wall
-      input(type="submit" value="Search" name="selection")
+    //h4= "Please select a word you want to search in tweets"
+    //form(action="/display" method="post")
+    //  select(name="selection")
+    //    option(value="rich") rich
+    //    option(value="strong") strong
+    //    option(value="voting") voting
+    //    option(value="wall") wall
+    //  input(type="submit" value="Search")
     div(id="map")
+      //script.
+      //  function initMap() {
+      //      //var loc = locs;
+      //      var uluru = {lat: #{num1}, lng: #{num2}};
+      //      //var uluru = {lat: 37, lng: -95};
+      //      var nwc = {lat: 40.8097609, lng: -73.9617941};
+      //      var map = new google.maps.Map(document.getElementById('map'), {zoom: 4, center: uluru});
+      //      var marker = new google.maps.Marker({position: uluru, map: map});
+      //      var marker2 = new google.maps.Marker({position: nwc, map:map});}
+      //script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
       script.
-        function initMap() {
-            //var loc = locs;
-            var uluru = {lat: 37, lng: -95};
-            var nwc = {lat: 40.8097609, lng: -73.9617941};
-            var map = new google.maps.Map(document.getElementById('map'), {zoom: 4, center: uluru});
-            var marker = new google.maps.Marker({position: uluru, map: map});
-            var marker2 = new google.maps.Marker({position: nwc, map:map});}
-      script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
+          //document.getElementById("map").innerHTML = "#{locs}";
+          function showLoc() {
+              var text = "";
+              var i;
+              var loc = JSON.parse('!{locs}');
+              for (i = 0; i < loc.length; i++) {
+                  text += loc[i] + "<br>";
+              }
+              document.getElementById("map").innerHTML = text;
+          }
+          showLoc();
 

@@ -35,7 +35,7 @@ app.post('/display', function (req, res) {
         type: 'tweets',
         body: {
             query: {
-                match: { "text": "great" }
+                match: { "text": req.body.selection }
             },
         }
     },function (error, response,status) {
@@ -48,11 +48,12 @@ app.post('/display', function (req, res) {
             response.hits.hits.forEach(function(hit){
                 console.log(hit._source.user.location);
                 console.log(typeof hit._source.user.location);
-                result.push(hit._source.user.location);
+                if (hit._source.user.location != null) result.push(hit._source.user.location);
             })
         }
         console.log("result = " + result);
-        res.render('display', {locs: result});
+        // res.render('display', {num1: 37, num2: -95});
+        res.render('display', {locs: JSON.stringify(result)});
     });
 
     // console.log(searched);

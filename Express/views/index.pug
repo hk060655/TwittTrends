@@ -4,8 +4,8 @@ html
     body
         h1= "TwittMap"
         h4= "Please select a word you want to search in tweets"
-        form(action="/display" enctype="multipart/form-data" method="post")
-            select
+        form(action="/display" method="post")
+            select(name="selection")
                 option(value="rich") rich
                 option(value="strong") strong
                 option(value="voting") voting
