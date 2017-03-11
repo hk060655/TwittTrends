@@ -8,7 +8,7 @@ var express = require('express');
 var app = express();
 var Elasticsearch = require('aws-es');
 var bodyParser = require('body-parser');
-var StreamTweets = require('stream-tweets');
+var Twit = require('twit')
 var credentials = require('./config/twitter-keys').twitterKeys;
 var http = require('http');
 var server = http.createServer(app);
@@ -26,42 +26,43 @@ server.listen(process.env.PORT || 8081, function () {
     console.log("Example app listening at http://%s:%s", host, port);
 })
 
-// );
-//start server
-// var server = app.listen(app.get('portListen'), function () {
-//     var host = server.address().address;
-//     var port = server.address().port;
-//
-//     console.log("Example app listening at http://%s:%s", host, port);
-// })
 
 //create new stream-tweets instance
-var st = new StreamTweets(credentials);
+var T = new Twit(credentials);
 
-//check form of streaming data
-// st.stream({track:['rich','power','wall','trump']}, function(tweet){
-//     console.log(tweet);
-// });
+var stream = T.stream('statuses/filter', {track:['rich','power','wall','trump'],locations: [-134.91,25.76,-66.4,49.18]})
 
 //Create web sockets connection.
 io.sockets.on('connection', function (socket) {
     socket.on("start stream", function() {
-        //process streaming tweets
-        // us region:  locations: [-134.91,25.76,-66.4,49.18],
-        st.stream({locations: [-134.91,25.76,-66.4,49.18],track:['rich','power','wall','trump']}, function(tweet){
-            if (tweet.location.location.lat!=0) {
-                // console.log(tweet); // Do awesome stuff with the results here
+        console.log('Client connected !');
+        stream.start();
+        stream.on('tweet', function (tweet) {
+            if (tweet.coordinates!=null) {
+                console.log(tweet); // Do awesome stuff with the results here
+
+                var tw_info = {};
+                tw_info.location = {
+                    lat : tweet.coordinates.coordinates[1],
+                    lng : tweet.coordinates.coordinates[0],
+                };
                 //send out to web sockets
-                socket.broadcast.emit("twitter-stream", tweet);
+                socket.broadcast.emit("twitter-stream", tw_info);
                 //Send out to web sockets channel.
-                socket.emit('twitter-stream', tweet);
+                socket.emit('twitter-stream', tw_info);
             }
-        });
+        })
     });
 
     // Emits signal to the client telling them that the
     // they are connected and can start receiving Tweets
     socket.emit("connected");
+
+    socket.on('disconnect', function() {
+        console.log('Client disconnected !');
+        stream.stop();
+
+    });
 });
 
 

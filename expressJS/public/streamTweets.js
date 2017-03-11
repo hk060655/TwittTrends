@@ -28,8 +28,8 @@ if(io !== undefined) {
 
         //Add tweet to the map array.
         var tweetLocation = new google.maps.LatLng({
-            "lng":parseFloat(tweet.location.location.lng),
-            "lat":parseFloat(tweet.location.location.lat)});
+            "lng":parseFloat(tweet.location.lng),
+            "lat":parseFloat(tweet.location.lat)});
 
         liveTweets.push(tweetLocation);
         console.log(liveTweets);
@@ -41,7 +41,7 @@ if(io !== undefined) {
         });
         setTimeout(function(){
             marker.setMap(null);
-        },800);
+        },600);
 
     });
 
