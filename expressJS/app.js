@@ -10,9 +10,19 @@ var Elasticsearch = require('aws-es');
 var bodyParser = require('body-parser');
 var Twit = require('twit')
 var credentials = require('./config/twitter-keys').twitterKeys;
+var esCredentials = require('./config/es-keys').esKeys;
 var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
+var es = new Elasticsearch(esCredentials);
+
+//create new stream-tweets instance
+var T = new Twit(credentials);
+var stream = T.stream(
+    'statuses/filter', {
+        // track:['rich','power','wall','trump'],
+        locations: [-134.91,25.76,-66.4,49.18]
+})
 
 app.set('view engine', 'pug');
 app.use(bodyParser.json());
@@ -20,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.set('portListen', process.env.PORT || 8081);
 app.use("/public", express.static(__dirname + '/public'));
 
+//start server
 server.listen(process.env.PORT || 8081, function () {
     var host = server.address().address;
     var port = server.address().port;
@@ -27,24 +38,35 @@ server.listen(process.env.PORT || 8081, function () {
 })
 
 
-//create new stream-tweets instance
-var T = new Twit(credentials);
-
-var stream = T.stream('statuses/filter', {track:['rich','power','wall','trump'],locations: [-134.91,25.76,-66.4,49.18]})
-
 //Create web sockets connection.
 io.sockets.on('connection', function (socket) {
     socket.on("start stream", function() {
         console.log('Client connected !');
         stream.start();
         stream.on('tweet', function (tweet) {
-            if (tweet.coordinates!=null) {
-                console.log(tweet); // Do awesome stuff with the results here
+            if (tweet.coordinates != null) {
+                //console.log(tweet); // Do awesome stuff with the results here
+
+                es.bulk({
+                    index: 'geo_tweets',
+                    type: 'tweets',
+                    body: [
+                        { "index" : { "_index" : "geo_tweets", "_type" : "tweets"}},
+                        tweet]
+                }, function (error, response) {
+                    if (error) {
+                        console.log("error: ", error);
+                    }
+                    else {
+                        console.log("new data created", response.items[0].results);
+                    }
+                });
 
                 var tw_info = {};
                 tw_info.location = {
-                    lat : tweet.coordinates.coordinates[1],
-                    lng : tweet.coordinates.coordinates[0],
+                    //"coordinates" : [lng, lat]
+                    lat: tweet.coordinates.coordinates[1],
+                    lng: tweet.coordinates.coordinates[0],
                 };
                 //send out to web sockets
                 socket.broadcast.emit("twitter-stream", tw_info);
@@ -83,28 +105,16 @@ app.get('/index', function (req, res) {
 app.post('/display', function (req, res) {
     console.log("Request handler Display");
     console.log("Parsed: " + req.body.selection);
-    var result = [];
     var long = [];
     var lat = [];
-    // var base1 = 5;
-    // var base2 = 5;
-    // var count = 0;
 
-    elasticsearch = new Elasticsearch({
-        accessKeyId: 'AKIAJ7OSXNTJ2ZYVZ5XQ',
-        secretAccessKey: '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',
-        service: 'es',
-        region: 'us-east-1',
-        host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com'
-    });
-
-
-    elasticsearch.search({
+    es.search({
         index: 'geo_tweets',
         type: 'tweets',
         body: {
             size: 3000,
             query: {
+                //@todo beter way to search? here only selected trump but some records may not have coordinates
                 match: { "text": req.body.selection },
             },
         },
@@ -115,17 +125,23 @@ app.post('/display', function (req, res) {
         else {
             console.log("--- Response ---");
             console.log("--- Hits ---");
-            response.hits.hits.forEach(function(hit){
-                console.log(hit._source.user.location);
-                console.log(typeof hit._source.user.location);
-                if (hit._source.user.location != null) result.push(hit._source.user.location);
-                console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
-                long.push(hit._source.place.bounding_box.coordinates[0][1][0]);
-                lat.push(hit._source.place.bounding_box.coordinates[0][1][1]);
-            })
+
+            for (var hit in response.hits.hits) {
+                console.log(hit);
+                if (hit._source.coordinates != null) {
+                    console.log("Geo location fetched: " + hit._source.coordinates.coordinates);
+                    long.push(hit._source.coordinates.coordinates[0]);
+                    lat.push(hit._source.coordinates.coordinates[1]);
+                }
+            }
+
+            // response.hits.hits.forEach(function(hit){
+            //     // console.log(typeof hit._source.user.location);
+            //     // if (hit._source.user.location != null) result.push(hit._source.user.location);
+            //     // console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
+            // })
         }
-        console.log("result = " + result);
-        // res.render('display', {num1: 37, num2: -95});
+
         res.render('display', {longs: JSON.stringify(long), lats: JSON.stringify(lat)});//{locs: JSON.stringify(result)});
     });
 
@@ -135,6 +151,9 @@ app.post('/display', function (req, res) {
     // console.log(result);
     // res.send(result);
     // res.render('display');
+
+
+
 })
 
 
