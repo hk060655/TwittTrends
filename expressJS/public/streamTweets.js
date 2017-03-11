@@ -2,7 +2,8 @@
  * Created by longlong on 3/10/17.
  */
 
-var map;
+var map,
+    liveTweets;
 function initMap() {
     var nwc = {lat: 40.8097609, lng: -73.9617941};
     map = new google.maps.Map(document.getElementById('map'), {
@@ -13,10 +14,9 @@ function initMap() {
         position: nwc,
         map: map
     });
-
+    liveTweets = new google.maps.MVCArray();
 }
 
-var liveTweets = new google.maps.MVCArray();
 
 if(io !== undefined) {
     // Storage for WebSocket connections
@@ -26,18 +26,22 @@ if(io !== undefined) {
     // received everytime a new tweet is receieved.
     socket.on('twitter-stream', function (tweet) {
 
-        //Add tweet to the heat map array.
-        var tweetLocation = new google.maps.LatLng(tweet.location.location.lng,tweet.location.location.lat);
-        liveTweets.push(tweetLocation);
+        //Add tweet to the map array.
+        var tweetLocation = new google.maps.LatLng({
+            "lng":parseFloat(tweet.location.location.lng),
+            "lat":parseFloat(tweet.location.location.lat)});
 
-        //Flash a dot onto the map quickly
+        liveTweets.push(tweetLocation);
+        console.log(liveTweets);
+        var bird = "/public/twitter_bird.png";
         var marker = new google.maps.Marker({
             position: tweetLocation,
             map: map,
+            icon: bird
         });
         setTimeout(function(){
             marker.setMap(null);
-        },600);
+        },800);
 
     });
 

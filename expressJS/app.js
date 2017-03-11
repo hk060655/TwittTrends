@@ -50,7 +50,7 @@ io.sockets.on('connection', function (socket) {
         // us region:  locations: [-134.91,25.76,-66.4,49.18],
         st.stream({locations: [-134.91,25.76,-66.4,49.18],track:['rich','power','wall','trump']}, function(tweet){
             if (tweet.location.location.lat!=0) {
-                console.log(tweet); // Do awesome stuff with the results here
+                // console.log(tweet); // Do awesome stuff with the results here
                 //send out to web sockets
                 socket.broadcast.emit("twitter-stream", tweet);
                 //Send out to web sockets channel.
