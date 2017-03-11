@@ -23,7 +23,7 @@ html
             //var loc = locs;
             //var uluru = {lat: #{num1}, lng: #{num2}};
             //var uluru = {lat: 37, lng: -95};
-            var map = new google.maps.Map(document.getElementById('map'), {zoom: 4, center: {lat: 37, lng: -95}});
+            var map = new google.maps.Map(document.getElementById('map'), {zoom: 5, center: {lat: 37, lng: -95}});
             for (i = 0; i < lat.length; i++) {
                 var marker = new google.maps.Marker({position: {lat: parseFloat(lat[i]), lng:parseFloat(long[i])}, map: map});
             }

@@ -25,36 +25,43 @@ app.set('portListen', process.env.PORT || 8081);
 //create new stream-tweets instance
 var st = new StreamTweets(credentials);
 
-
-//process streaming tweets
-st.stream({track:['rich','power','wall','trump']}, function(tweets){
-    if (tweets.location.location.lat!=0) {
-        console.log(tweets); // Do awesome stuff with the results here
-    }
-
-    console.log(tweets);
-
-});
-
+//check form of streaming data
+// st.stream({track:['rich','power','wall','trump']}, function(tweet){
+//     console.log(tweet);
+// });
 
 //Create web sockets connection.
 io.sockets.on('connection', function (socket) {
+    socket.on("start stream", function() {
+        //process streaming tweets
+        // us region:  locations: [-134.91,25.76,-66.4,49.18],
+        st.stream({locations: [-134.91,25.76,-66.4,49.18],track:['rich','power','wall','trump']}, function(tweet){
+            if (tweet.location.location.lat!=0) {
+                console.log(tweet); // Do awesome stuff with the results here
+                //send out to web sockets
+                socket.broadcast.emit("twitter-stream", tweet);
+                //Send out to web sockets channel.
+                socket.emit('twitter-stream', tweet);
+            }
+        });
+    });
 
-    //Code to run when socket.io is setup.
-
+    // Emits signal to the client telling them that the
+    // they are connected and can start receiving Tweets
+    socket.emit("connected");
 });
 
 
 //index route
 app.get('/', function (req, res) {
     console.log("Request handler Index");
-    res.render('index');
+    res.render('index',{scripts: ['streamTweets.js']}); //'jquery.min.js',
 })
 
 //index route
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
-    res.render('index');
+    res.render('index',{scripts: ['streamTweets.js']});
 })
 
 

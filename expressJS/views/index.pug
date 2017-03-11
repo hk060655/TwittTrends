@@ -1,6 +1,11 @@
 html
     head
         title= "Search"
+        style.
+            #map {
+                height: 500px;
+                width: 100%;
+            }
     body
         h1= "TwittMap"
         h4= "Please select a word you want to search in tweets"
@@ -11,3 +16,8 @@ html
                 option(value="trump") trump
                 option(value="wall") wall
             input(type="submit" value="Search")
+            hr
+        div(id="map")
+        script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
+        each script in scripts
+            script(type='text/javascript', src=script)
