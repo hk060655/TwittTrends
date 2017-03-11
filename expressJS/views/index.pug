@@ -18,6 +18,7 @@ html
             input(type="submit" value="Search")
             hr
         div(id="map")
-        script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
+
         each script in scripts
             script(type='text/javascript', src=script)
+        script(src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")

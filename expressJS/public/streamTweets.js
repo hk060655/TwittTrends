@@ -2,17 +2,21 @@
  * Created by longlong on 3/10/17.
  */
 
-var nwc = {lat: 40.8097609, lng: -73.9617941};
-var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 5,
-    center: {lat: 37, lng: -95}
-});
-var marker = new google.maps.Marker({
-    position: nwc,
-    map: map
-});
-var liveTweets = new google.maps.MVCArray();
+var map;
+function initMap() {
+    var nwc = {lat: 40.8097609, lng: -73.9617941};
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 4,
+        center: {lat: 37, lng: -95}
+    });
+    var marker = new google.maps.Marker({
+        position: nwc,
+        map: map
+    });
 
+}
+
+var liveTweets = new google.maps.MVCArray();
 
 if(io !== undefined) {
     // Storage for WebSocket connections
@@ -20,10 +24,10 @@ if(io !== undefined) {
 
     // This listens on the "twitter-steam" channel and data is
     // received everytime a new tweet is receieved.
-    socket.on('twitter-stream', function (data) {
+    socket.on('twitter-stream', function (tweet) {
 
         //Add tweet to the heat map array.
-        var tweetLocation = new google.maps.LatLng(location.location.lng,location.location.lat);
+        var tweetLocation = new google.maps.LatLng(tweet.location.location.lng,tweet.location.location.lat);
         liveTweets.push(tweetLocation);
 
         //Flash a dot onto the map quickly

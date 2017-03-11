@@ -14,13 +14,26 @@ var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
-
-
 app.set('view engine', 'pug');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set('portListen', process.env.PORT || 8081);
+app.use("/public", express.static(__dirname + '/public'));
 
+server.listen(process.env.PORT || 8081, function () {
+    var host = server.address().address;
+    var port = server.address().port;
+    console.log("Example app listening at http://%s:%s", host, port);
+})
+
+// );
+//start server
+// var server = app.listen(app.get('portListen'), function () {
+//     var host = server.address().address;
+//     var port = server.address().port;
+//
+//     console.log("Example app listening at http://%s:%s", host, port);
+// })
 
 //create new stream-tweets instance
 var st = new StreamTweets(credentials);
@@ -55,13 +68,13 @@ io.sockets.on('connection', function (socket) {
 //index route
 app.get('/', function (req, res) {
     console.log("Request handler Index");
-    res.render('index',{scripts: ['streamTweets.js']}); //'jquery.min.js',
+    res.render('index',{scripts: ['/socket.io/socket.io.js','/public/streamTweets.js']}); //'jquery.min.js',
 })
 
 //index route
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
-    res.render('index',{scripts: ['streamTweets.js']});
+    res.render('index',{scripts: ['/socket.io/socket.io.js','/public/streamTweets.js']});
 })
 
 
@@ -124,10 +137,4 @@ app.post('/display', function (req, res) {
 })
 
 
-//start server
-var server = app.listen(app.get('portListen'), function () {
-    var host = server.address().address;
-    var port = server.address().port;
 
-    console.log("Example app listening at http://%s:%s", host, port);
-})
