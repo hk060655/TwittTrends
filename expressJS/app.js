@@ -58,7 +58,7 @@ io.sockets.on('connection', function (socket) {
                         console.log("error: ", error);
                     }
                     else {
-                        console.log("new data created", response.items[0].results);
+                        console.log("new data created", response);
                     }
                 });
 
@@ -83,7 +83,6 @@ io.sockets.on('connection', function (socket) {
     socket.on('disconnect', function() {
         console.log('Client disconnected !');
         stream.stop();
-
     });
 });
 
@@ -107,6 +106,7 @@ app.post('/display', function (req, res) {
     console.log("Parsed: " + req.body.selection);
     var long = [];
     var lat = [];
+    var result = [];
 
     es.search({
         index: 'geo_tweets',
@@ -118,7 +118,7 @@ app.post('/display', function (req, res) {
                 match: { "text": req.body.selection },
             },
         },
-    },function (error, response,status) {
+    },function (error, response) {
         if (error){
             console.log("search error: "+error);
         }
@@ -137,8 +137,9 @@ app.post('/display', function (req, res) {
 
             // response.hits.hits.forEach(function(hit){
             //     // console.log(typeof hit._source.user.location);
-            //     // if (hit._source.user.location != null) result.push(hit._source.user.location);
-            //     // console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
+            //     console.log(hit._source.coordinates.coordinates[0]);
+            //     if (hit._source.user.location != null) result.push(hit._source.user.location);
+            //     console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
             // })
         }
 
