@@ -1,26 +1,64 @@
 /**
  * Created by kaihe on 3/10/17.
- */
+ * Supercharged by longlong on 3/11/17
+ **/
 
+//general set up
 var express = require('express');
 var app = express();
 var Elasticsearch = require('aws-es');
 var bodyParser = require('body-parser');
+var StreamTweets = require('stream-tweets');
+var credentials = require('./config/twitter-keys').twitterKeys;
+var http = require('http');
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
+
+
 
 app.set('view engine', 'pug');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.set('portListen', process.env.PORT || 8081);
 
+
+//create new stream-tweets instance
+var st = new StreamTweets(credentials);
+
+
+//process streaming tweets
+st.stream({track:['rich','power','wall','trump']}, function(tweets){
+    if (tweets.location.location.lat!=0) {
+        console.log(tweets); // Do awesome stuff with the results here
+    }
+
+    console.log(tweets);
+
+});
+
+
+//Create web sockets connection.
+io.sockets.on('connection', function (socket) {
+
+    //Code to run when socket.io is setup.
+
+});
+
+
+//index route
 app.get('/', function (req, res) {
     console.log("Request handler Index");
     res.render('index');
 })
 
+//index route
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
     res.render('index');
 })
 
+
+//display page route
 app.post('/display', function (req, res) {
     console.log("Request handler Display");
     console.log("Parsed: " + req.body.selection);
@@ -78,8 +116,8 @@ app.post('/display', function (req, res) {
     // res.render('display');
 })
 
-app.set('portListen', process.env.PORT || 8081);
 
+//start server
 var server = app.listen(app.get('portListen'), function () {
     var host = server.address().address;
     var port = server.address().port;
