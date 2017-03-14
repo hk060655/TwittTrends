@@ -22,7 +22,7 @@ var es = new Elasticsearch(esCredentials);
  */
 var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
-    host: 'http://search-tweet-dbe2ownhb4hd7esqa2xua2333m.us-east-1.es.amazonaws.com/'
+    host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com/'
 });
 
 client.ping({

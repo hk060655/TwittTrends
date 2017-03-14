@@ -3,17 +3,8 @@ html
     title= "Display"
     style.
         #map {height: 500px; width: 100%;}
-
   body
     h1= "TwittMap"
-    //h4= "Please select a word you want to search in tweets"
-    //form(action="/display" method="post")
-    //  select(name="selection")
-    //    option(value="rich") rich
-    //    option(value="strong") strong
-    //    option(value="voting") voting
-    //    option(value="wall") wall
-    //  input(type="submit" value="Search")
     div(id="map")
       script.
         function initMap() {
@@ -29,17 +20,4 @@ html
             }
         }
       script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
-      //script.
-      //    //document.getElementById("map").innerHTML = "#{locs}";
-      //    function showLoc() {
-      //        var text = "";
-      //        var i;
-      //        var lat = JSON.parse("!{lats}");
-      //        //var loc = JSON.parse('!{locs}');
-      //        for (i = 0; i < lat.length; i++) {
-      //            text += parseInt(lat[i]) + "<br>";
-      //        }
-      //        document.getElementById("map").innerHTML = text;
-      //    }
-      //    showLoc();
 
