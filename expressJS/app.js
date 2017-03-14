@@ -20,7 +20,7 @@ var es = new Elasticsearch(esCredentials);
 var T = new Twit(credentials);
 var stream = T.stream(
     'statuses/filter', {
-        // track:['rich','power','wall','trump'],
+        track:['rich','power','wall','trump'],
         locations: [-134.91,25.76,-66.4,49.18]
 })
 
@@ -40,25 +40,25 @@ server.listen(process.env.PORT || 8081, function () {
 
 //Create web sockets connection.
 io.sockets.on('connection', function (socket) {
-    socket.on("start stream", function() {
+    socket.on("start stream", function () {
         console.log('Client connected !');
         stream.start();
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null) {
-                //console.log(tweet); // Do awesome stuff with the results here
+                console.log(tweet); // Do awesome stuff with the results here
 
                 es.bulk({
                     index: 'geo_tweets',
                     type: 'tweets',
                     body: [
-                        { "index" : { "_index" : "geo_tweets", "_type" : "tweets"}},
+                        {"index": {"_index": "geo_tweets", "_type": "tweets"}},
                         tweet]
                 }, function (error, response) {
                     if (error) {
                         console.log("error: ", error);
                     }
                     else {
-                        console.log("new data created", response);
+                        console.log("new data created");//, response.items
                     }
                 });
 
@@ -80,23 +80,64 @@ io.sockets.on('connection', function (socket) {
     // they are connected and can start receiving Tweets
     socket.emit("connected");
 
-    socket.on('disconnect', function() {
+    socket.on('end stream', function () {
+        console.log('Client stopped stream !');
+        stream.stop();
+        socket.emit("being stopped");
+    });
+
+    socket.on('disconnect', function () {
         console.log('Client disconnected !');
         stream.stop();
+        socket.emit("being stopped");
+    });
+
+    socket.on('search', function (keyword) {
+        console.log('Client start searching !');
+        es.search({
+            index: 'geo_tweets',
+            type: 'tweets',
+            body: {
+                size: 1000,
+                query: {
+                    match: {"text": keyword.key},
+                },
+            },
+        }, function (error, response) {
+            // if (error) {
+            //     console.log("search error: " + error);
+            // }
+            // else {
+                console.log("--- Response1 ---");
+            console.log(response);
+            if (response==null) return;
+            res = []
+            for (var hit in response.hits.hits) {
+
+                if (hit._source.coordinates != null) {
+                    console.log(hit);
+                    res.push(hit._source);
+                }
+            }
+            socket.emit("search results", {results: response});
+            console.log("search results sent to client");
+        })
     });
 });
+// });
+
 
 
 //index route
 app.get('/', function (req, res) {
     console.log("Request handler Index");
-    res.render('index',{scripts: ['/socket.io/socket.io.js','/public/streamTweets.js']}); //'jquery.min.js',
+    res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']}); //'jquery.min.js',
 })
 
 //index route
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
-    res.render('index',{scripts: ['/socket.io/socket.io.js','/public/streamTweets.js']});
+    res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']});
 })
 
 
@@ -115,12 +156,12 @@ app.post('/display', function (req, res) {
             size: 3000,
             query: {
                 //@todo beter way to search? here only selected trump but some records may not have coordinates
-                match: { "text": req.body.selection },
+                match: {"text": req.body.selection},
             },
         },
-    },function (error, response) {
-        if (error){
-            console.log("search error: "+error);
+    }, function (error, response) {
+        if (error) {
+            console.log("search error: " + error);
         }
         else {
             console.log("--- Response ---");
@@ -134,13 +175,6 @@ app.post('/display', function (req, res) {
                     lat.push(hit._source.coordinates.coordinates[1]);
                 }
             }
-
-            // response.hits.hits.forEach(function(hit){
-            //     // console.log(typeof hit._source.user.location);
-            //     console.log(hit._source.coordinates.coordinates[0]);
-            //     if (hit._source.user.location != null) result.push(hit._source.user.location);
-            //     console.log("box = " + hit._source.place.bounding_box.coordinates[0][0]);
-            // })
         }
 
         res.render('display', {longs: JSON.stringify(long), lats: JSON.stringify(lat)});//{locs: JSON.stringify(result)});
@@ -154,8 +188,4 @@ app.post('/display', function (req, res) {
     // res.render('display');
 
 
-
 })
-
-
-

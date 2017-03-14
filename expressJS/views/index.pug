@@ -9,16 +9,20 @@ html
     body
         h1= "TwittMap"
         h4= "Please select a word you want to search in tweets"
-        form(action="/display" method="post")
-            select(name="selection")
+        button#startStream(type='button') Start Stream
+        button#endStream(type='button') End Stream
+        form
+            select#select(name="selection")
                 option(value="rich") rich
                 option(value="strong") strong
                 option(value="trump") trump
                 option(value="wall") wall
-            input(type="submit" value="Search")
+            input#search(type="button" value="Search")
             hr
         div(id="map")
 
         each script in scripts
             script(type='text/javascript', src=script)
         script(async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYAXFUzdidNb5J_EnXz9Pa6Jbsedt6FdM&callback=initMap")
+            <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")
