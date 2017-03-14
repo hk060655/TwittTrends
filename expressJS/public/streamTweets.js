@@ -6,6 +6,12 @@ var map,
     markers=[],
     liveTweets;
 var bird = "/public/twitter_bird.png";
+var blue = "/public/google-maps-gris-hi.png";
+
+var centerMarker;
+var centerLng = 0;
+var centerLat = 0;
+
 function initMap() {
     // var nwc = {lat: 40.8097609, lng: -73.9617941};
     map = new google.maps.Map(document.getElementById('map'), {
@@ -17,6 +23,23 @@ function initMap() {
     //     map: map
     // });
     // liveTweets = new google.maps.MVCArray();
+
+    map.addListener('click', function(e) {
+        placeMarkerAndPanTo(e.latLng, map);
+        centerLng = e.latLng.lng();
+        centerLat = e.latLng.lat();
+    });
+
+    function placeMarkerAndPanTo(latLng, map) {
+        removeMarkers();
+        if (centerMarker != null) centerMarker.setMap(null);
+        centerMarker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            icon: blue
+        });
+        //map.panTo(latLng);
+    }
 }
 
 function removeMarkers(){
@@ -25,6 +48,10 @@ function removeMarkers(){
     }
     markers=[];
 }
+
+
+
+
 
 
 if (io !== undefined) {
@@ -69,14 +96,28 @@ if (io !== undefined) {
     });
     socket.on("search results", function (res) {
         console.log("-----------results: " + res.results);
+
+
+
         // var markers = [];
         removeMarkers();
+
         for (var i = 0; i < res.results.length; i++) {
+            // console.log("center = " + center);
+            console.log("res1 = " + res.results[i].place.bounding_box.coordinates[0][1][0]);
+            console.log("res2 = " + centerLng);
+            console.log("distance = " + Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2));
+            if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 300))
+                continue;
+
+
             var loc = new google.maps.LatLng({
                 // fix the structure, working now
                 "lng": res.results[i].place.bounding_box.coordinates[0][1][0],
                 "lat": res.results[i].place.bounding_box.coordinates[0][1][1]
             });
+
+
             //console.log(res.results);
             markers[markers.length] = new google.maps.Marker({
                 position: loc,
@@ -85,6 +126,8 @@ if (io !== undefined) {
             });
             // map.addMarker(marker);
         }
+
+
 
         // var loc = new google.maps.LatLng({
         //     "lng": res.results[0].coordinates.coordinates[0],
