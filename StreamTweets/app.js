@@ -15,11 +15,6 @@ var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
-
-
-/*
-    Trying another package here
- */
 var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
     host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com/'
@@ -66,8 +61,6 @@ io.sockets.on('connection', function (socket) {
         stream.start();
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null) {
-                // console.log(tweet); // Do awesome stuff with the results here
-
                 es.bulk({
                     index: 'geo_tweets',
                     type: 'tweets',
@@ -89,16 +82,12 @@ io.sockets.on('connection', function (socket) {
                     lat: tweet.coordinates.coordinates[1],
                     lng: tweet.coordinates.coordinates[0],
                 };
-                //send out to web sockets
                 socket.broadcast.emit("twitter-stream", tw_info);
-                //Send out to web sockets channel.
                 socket.emit('twitter-stream', tw_info);
             }
         })
     });
 
-    // Emits signal to the client telling them that the
-    // they are connected and can start receiving Tweets
     socket.emit("connected");
 
     socket.on('end stream', function () {
@@ -113,41 +102,7 @@ io.sockets.on('connection', function (socket) {
         socket.emit("being stopped");
     });
 
-    /*this one does not work..
-    socket.on('search', function (keyword) {
-        console.log('Client start searching !');
-        es.search({
-            index: 'geo_tweets',
-            type: 'tweets',
-            body: {
-                size: 1000,
-                query: {
-                    match: {"text": keyword.key},
-                },
-            },
-        }, function (error, response) {
-            // if (error) {
-            //     console.log("search error: " + error);
-            // }
-            // else {
-                console.log("--- Response1 ---");
-            console.log(response);
-            if (response==null) return;
-            res = []
-            for (var hit in response.hits.hits) {
-
-                if (hit._source.coordinates != null) {
-                    console.log(hit);
-                    res.push(hit._source);
-                }
-            }
-            socket.emit("search results", {results: response});
-            console.log("search results sent to client");
-        });
-    });//this one does not work..
-    */
-
-    // wait a second
+    // handle search request
     socket.on('search', function (keyword) {
         client.search({
             index: 'geo_tweets',
@@ -173,9 +128,6 @@ io.sockets.on('connection', function (socket) {
     });
     //
 });
-// });
-
-
 
 //index route
 app.get('/', function (req, res) {
@@ -187,54 +139,4 @@ app.get('/', function (req, res) {
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
     res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']});
-})
-
-
-//display page route
-app.post('/display', function (req, res) {
-    console.log("Request handler Display");
-    console.log("Parsed: " + req.body.selection);
-    var long = [];
-    var lat = [];
-    var result = [];
-
-    es.search({
-        index: 'geo_tweets',
-        type: 'tweets',
-        body: {
-            size: 3000,
-            query: {
-                //@todo beter way to search? here only selected trump but some records may not have coordinates
-                match: {"text": req.body.selection},
-            },
-        },
-    }, function (error, response) {
-        if (error) {
-            console.log("search error: " + error);
-        }
-        else {
-            // console.log("--- Response ---");
-            // console.log("--- Hits ---");
-
-            for (var hit in response.hits.hits) {
-                // console.log(hit);
-                if (hit._source.coordinates != null) {
-                    // console.log("Geo location fetched: " + hit._source.coordinates.coordinates);
-                    long.push(hit._source.coordinates.coordinates[0]);
-                    lat.push(hit._source.coordinates.coordinates[1]);
-                }
-            }
-        }
-
-        res.render('display', {longs: JSON.stringify(long), lats: JSON.stringify(lat)});//{locs: JSON.stringify(result)});
-    });
-
-    // console.log(searched);
-    // console.log(typeof searched);
-
-    // console.log(result);
-    // res.send(result);
-    // res.render('display');
-
-
 })

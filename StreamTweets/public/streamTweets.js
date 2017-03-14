@@ -3,8 +3,7 @@
  */
 
 var map,
-    markers=[],
-    liveTweets;
+    markers=[];
 var bird = "/public/twitter_bird.png";
 var blue = "/public/google-maps-gris-hi.png";
 
@@ -18,11 +17,6 @@ function initMap() {
         zoom: 4,
         center: {lat: 37, lng: -95}
     });
-    // var marker = new google.maps.Marker({
-    //     position: nwc,
-    //     map: map
-    // });
-    // liveTweets = new google.maps.MVCArray();
 
     map.addListener('click', function(e) {
         placeMarkerAndPanTo(e.latLng, map);
@@ -48,11 +42,6 @@ function removeMarkers(){
     }
     markers=[];
 }
-
-
-
-
-
 
 if (io !== undefined) {
     // Storage for WebSocket connections
@@ -85,9 +74,7 @@ if (io !== undefined) {
         // Listens for a success response from the server to
     // say the connection was successful.
     socket.on("connected", function (r) {
-
-        //Now that we are connected to the server let's tell
-        //the server we are ready to start receiving tweets.
+        //tell server we are ready to start receiving tweets.
         // socket.emit("start stream");
     });
 
@@ -95,22 +82,12 @@ if (io !== undefined) {
         alert("Stream being stopped! Click stream button to continue.");
     });
     socket.on("search results", function (res) {
-        // console.log("-----------results: " + res.results);
-
-
-
-        // var markers = [];
         removeMarkers();
 
         for (var i = 0; i < res.results.length; i++) {
-            // console.log("center = " + center);
-            // console.log("res1 = " + res.results[i].place.bounding_box.coordinates[0][1][0]);
-            // console.log("res2 = " + centerLng);
-            // console.log("distance = " + Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2));
 
             if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
                 continue;
-
 
             var loc = new google.maps.LatLng({
                 // fix the structure, working now
@@ -118,28 +95,12 @@ if (io !== undefined) {
                 "lat": res.results[i].place.bounding_box.coordinates[0][1][1]
             });
 
-
-            //console.log(res.results);
             markers[markers.length] = new google.maps.Marker({
                 position: loc,
                 map: map,
-                //icon: bird
             });
-            // map.addMarker(marker);
         }
 
-
-
-        // var loc = new google.maps.LatLng({
-        //     "lng": res.results[0].coordinates.coordinates[0],
-        //     "lat": res.results[0].coordinates.coordinates[1]
-        // });
-        // //console.log(res.results);
-        // var markers = new google.maps.Marker({
-        //     position: loc,
-        //     map: map,
-        //     //icon: bird
-        // });
     });
 }
 
