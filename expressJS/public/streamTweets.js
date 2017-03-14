@@ -56,7 +56,7 @@ function removeMarkers(){
 
 if (io !== undefined) {
     // Storage for WebSocket connections
-    var socket = io.connect('http://localhost:8081/');
+    var socket = io.connect();
 
     // This listens on the "twitter-steam" channel and data is
     // received everytime a new tweet is receieved.
@@ -107,6 +107,7 @@ if (io !== undefined) {
             // console.log("res1 = " + res.results[i].place.bounding_box.coordinates[0][1][0]);
             // console.log("res2 = " + centerLng);
             // console.log("distance = " + Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2));
+
             if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
                 continue;
 
