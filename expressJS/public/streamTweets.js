@@ -95,7 +95,7 @@ if (io !== undefined) {
         alert("Stream being stopped! Click stream button to continue.");
     });
     socket.on("search results", function (res) {
-        console.log("-----------results: " + res.results);
+        // console.log("-----------results: " + res.results);
 
 
 
@@ -104,10 +104,10 @@ if (io !== undefined) {
 
         for (var i = 0; i < res.results.length; i++) {
             // console.log("center = " + center);
-            console.log("res1 = " + res.results[i].place.bounding_box.coordinates[0][1][0]);
-            console.log("res2 = " + centerLng);
-            console.log("distance = " + Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2));
-            if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 300))
+            // console.log("res1 = " + res.results[i].place.bounding_box.coordinates[0][1][0]);
+            // console.log("res2 = " + centerLng);
+            // console.log("distance = " + Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2));
+            if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
                 continue;
 
 

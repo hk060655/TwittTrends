@@ -66,7 +66,7 @@ io.sockets.on('connection', function (socket) {
         stream.start();
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null) {
-                console.log(tweet); // Do awesome stuff with the results here
+                // console.log(tweet); // Do awesome stuff with the results here
 
                 es.bulk({
                     index: 'geo_tweets',
@@ -213,13 +213,13 @@ app.post('/display', function (req, res) {
             console.log("search error: " + error);
         }
         else {
-            console.log("--- Response ---");
-            console.log("--- Hits ---");
+            // console.log("--- Response ---");
+            // console.log("--- Hits ---");
 
             for (var hit in response.hits.hits) {
-                console.log(hit);
+                // console.log(hit);
                 if (hit._source.coordinates != null) {
-                    console.log("Geo location fetched: " + hit._source.coordinates.coordinates);
+                    // console.log("Geo location fetched: " + hit._source.coordinates.coordinates);
                     long.push(hit._source.coordinates.coordinates[0]);
                     lat.push(hit._source.coordinates.coordinates[1]);
                 }
