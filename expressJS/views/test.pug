@@ -1,9 +1,0 @@
-html
-    div(id="tweets")
-    script(src="/socket.io/socket.io.js")
-    script.
-        var socket = io.connect('http://localhost:8081/');
-        var tweets = document.getElementById('tweets');
-        socket.on('twitter-stream', function (data) {
-            tweets.innerHTML = tweets.innerHTML + '<br>' + data.location.lng;
-        });
