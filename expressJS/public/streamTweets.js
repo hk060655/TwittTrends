@@ -7,15 +7,15 @@ var map,
     liveTweets;
 var bird = "/public/twitter_bird.png";
 function initMap() {
-    var nwc = {lat: 40.8097609, lng: -73.9617941};
+    // var nwc = {lat: 40.8097609, lng: -73.9617941};
     map = new google.maps.Map(document.getElementById('map'), {
         zoom: 4,
         center: {lat: 37, lng: -95}
     });
-    var marker = new google.maps.Marker({
-        position: nwc,
-        map: map
-    });
+    // var marker = new google.maps.Marker({
+    //     position: nwc,
+    //     map: map
+    // });
     // liveTweets = new google.maps.MVCArray();
 }
 
@@ -68,21 +68,34 @@ if (io !== undefined) {
         alert("Stream being stopped! Click stream button to continue.");
     });
     socket.on("search results", function (res) {
-        // console.log(res.results);
+        console.log("-----------results: " + res.results);
+        // var markers = [];
         removeMarkers();
         for (var i = 0; i < res.results.length; i++) {
             var loc = new google.maps.LatLng({
-                "lng": res.results[i].coordinates.coordinates[0],
-                "lat": res.results[i].coordinates.coordinates[1]
+                // fix the structure, working now
+                "lng": res.results[i].place.bounding_box.coordinates[0][1][0],
+                "lat": res.results[i].place.bounding_box.coordinates[0][1][1]
             });
             //console.log(res.results);
             markers[markers.length] = new google.maps.Marker({
                 position: loc,
                 map: map,
-                icon: bird
+                //icon: bird
             });
             // map.addMarker(marker);
         }
+
+        // var loc = new google.maps.LatLng({
+        //     "lng": res.results[0].coordinates.coordinates[0],
+        //     "lat": res.results[0].coordinates.coordinates[1]
+        // });
+        // //console.log(res.results);
+        // var markers = new google.maps.Marker({
+        //     position: loc,
+        //     map: map,
+        //     //icon: bird
+        // });
     });
 }
 
