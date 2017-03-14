@@ -16,6 +16,27 @@ var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
 
+
+/*
+    Trying another package here
+ */
+var elasticsearch = require('elasticsearch');
+var client = new elasticsearch.Client({
+    host: 'http://search-tweet-dbe2ownhb4hd7esqa2xua2333m.us-east-1.es.amazonaws.com/'
+});
+
+client.ping({
+    // ping usually has a 3000ms timeout
+    requestTimeout: 3000
+}, function (error) {
+    if (error) {
+        console.trace('elasticsearch cluster is down!');
+    } else {
+        console.log('All is well');
+    }
+});
+
+
 //create new stream-tweets instance
 var T = new Twit(credentials);
 var stream = T.stream(
@@ -92,6 +113,7 @@ io.sockets.on('connection', function (socket) {
         socket.emit("being stopped");
     });
 
+    /*this one does not work..
     socket.on('search', function (keyword) {
         console.log('Client start searching !');
         es.search({
@@ -121,8 +143,35 @@ io.sockets.on('connection', function (socket) {
             }
             socket.emit("search results", {results: response});
             console.log("search results sent to client");
+        });
+    });//this one does not work..
+    */
+
+    // wait a second
+    socket.on('search', function (keyword) {
+        client.search({
+            index: 'geo_tweets',
+            type: 'tweets',
+            size: 1000,
+            body: {
+                query: {
+                    match: {"text": keyword.key},
+                }
+            }
+        }).then(function (resp) {
+            var hits = resp.hits.hits;
+            console.log(hits,hits.length);
+            var res = [];
+            for (var i = 0; i < hits.length; i++) {
+                res[i] = hits[i]._source;
+            }
+            socket.emit("search results", {results: res});
+            console.log("search results sent to client");
+        }, function (err) {
+            console.log(err);
         })
     });
+    //
 });
 // });
 

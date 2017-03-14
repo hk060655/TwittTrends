@@ -3,6 +3,7 @@
  */
 
 var map,
+    markers=[],
     liveTweets;
 var bird = "/public/twitter_bird.png";
 function initMap() {
@@ -18,6 +19,12 @@ function initMap() {
     // liveTweets = new google.maps.MVCArray();
 }
 
+function removeMarkers(){
+    for(var i=0; i<markers.length; i++){
+        markers[i].setMap(null);
+    }
+    markers=[];
+}
 
 
 if (io !== undefined) {
@@ -61,18 +68,20 @@ if (io !== undefined) {
         alert("Stream being stopped! Click stream button to continue.");
     });
     socket.on("search results", function (res) {
-        console.log(res.results);
-        for (var i = 0; i < res.length; i++) {
+        // console.log(res.results);
+        removeMarkers();
+        for (var i = 0; i < res.results.length; i++) {
             var loc = new google.maps.LatLng({
-                "lng": res[i].coordinates.coordinates[0],
-                "lat": res[i].coordinates.coordinates[1]
+                "lng": res.results[i].coordinates.coordinates[0],
+                "lat": res.results[i].coordinates.coordinates[1]
             });
-            var marker = new google.maps.Marker({
+            //console.log(res.results);
+            markers[markers.length] = new google.maps.Marker({
                 position: loc,
                 map: map,
                 icon: bird
             });
-            map.addMarker(marker);
+            // map.addMarker(marker);
         }
     });
 }
@@ -85,6 +94,7 @@ document.getElementById('search').onclick = function () {
 }
 document.getElementById('startStream').onclick = function () {
     socket.emit("start stream");
+    removeMarkers();
 }
 document.getElementById('endStream').onclick = function () {
     socket.emit("end stream");
