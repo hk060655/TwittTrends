@@ -36,7 +36,7 @@ client.ping({
 var T = new Twit(credentials);
 var stream = T.stream(
     'statuses/filter', {
-        track:['rich','power','wall','trump'],
+        track:['rich','power','wall','trump','america','strong','storm','live','like','faith','google','weather','sports'],
         locations: [-134.91,25.76,-66.4,49.18]
 })
 
