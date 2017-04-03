@@ -84,17 +84,13 @@ io.sockets.on('connection', function (socket) {
                 var params = {
                     DelaySeconds: 10,
                     MessageAttributes: {
-                        "Title": {
+                        "ID": {
                             DataType: "String",
-                            StringValue: "The Whistler"
+                            StringValue: tweet.id_str
                         },
-                        "Author": {
+                        "geo": {
                             DataType: "String",
-                            StringValue: "John Grisham"
-                        },
-                        "WeeksOn": {
-                            DataType: "Number",
-                            StringValue: "6"
+                            StringValue: JSON.stringify(tweet.geo.coordinates)
                         }
                     },
                     MessageBody: tweet.text,
