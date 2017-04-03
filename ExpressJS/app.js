@@ -36,9 +36,9 @@ client.ping({
 var T = new Twit(credentials);
 var stream = T.stream(
     'statuses/filter', {
-        track:['rich','power','wall','trump','america','strong','storm','live','like','faith','google','weather','sports'],
-        locations: [-134.91,25.76,-66.4,49.18]
-})
+        track:['rich','power','wall','technology','america','strong','storm','live','like','music','google','weather','sports'],
+        //locations: [-134.91,25.76,-66.4,49.18]
+    })
 
 app.set('view engine', 'pug');
 app.use(bodyParser.json());
@@ -60,12 +60,12 @@ io.sockets.on('connection', function (socket) {
         console.log('Client connected !');
         stream.start();
         stream.on('tweet', function (tweet) {
-            if (tweet.coordinates != null) {
+            if (tweet.coordinates != null && tweet.lang == "en") {
                 es.bulk({
-                    index: 'geo_tweets',
+                    index: 'new_tweets',
                     type: 'tweets',
                     body: [
-                        {"index": {"_index": "tweets_test", "_type": "tweets"}},
+                        {"index": {"_index": "new_tweets", "_type": "tweets"}},
                         tweet]
                 }, function (error, response) {
                     if (error) {
@@ -75,6 +75,7 @@ io.sockets.on('connection', function (socket) {
                         console.log("new data created");//, response.items
                     }
                 });
+
 
                 var tw_info = {};
                 tw_info.location = {
@@ -105,7 +106,7 @@ io.sockets.on('connection', function (socket) {
     // handle search request
     socket.on('search', function (keyword) {
         client.search({
-            index: 'geo_tweets',
+            index: 'new_tweets',
             type: 'tweets',
             size: 1000,
             body: {

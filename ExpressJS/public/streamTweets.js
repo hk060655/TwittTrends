@@ -14,8 +14,8 @@ var centerLat = 0;
 function initMap() {
     // var nwc = {lat: 40.8097609, lng: -73.9617941};
     map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 4,
-        center: {lat: 37, lng: -95}
+        zoom: 2,
+        center: {lat: 25, lng: 157}
     });
 
     map.addListener('click', function(e) {
@@ -71,7 +71,7 @@ if (io !== undefined) {
 
     });
 
-        // Listens for a success response from the server to
+    // Listens for a success response from the server to
     // say the connection was successful.
     socket.on("connected", function (r) {
         //tell server we are ready to start receiving tweets.
