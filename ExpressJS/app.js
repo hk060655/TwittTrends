@@ -17,7 +17,7 @@ var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
 var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
-    host: 'search-test-off63ohnto3svkei2nbfv3oyj4.us-east-1.es.amazonaws.com/'
+    host: 'search-hw2-tdhgyz7ioes5cxy3auanx3cbtq.us-east-1.es.amazonaws.com/'
 });
 
 client.ping({
@@ -65,7 +65,7 @@ io.sockets.on('connection', function (socket) {
                     index: 'geo_tweets',
                     type: 'tweets',
                     body: [
-                        {"index": {"_index": "geo_tweets", "_type": "tweets"}},
+                        {"index": {"_index": "tweets_test", "_type": "tweets"}},
                         tweet]
                 }, function (error, response) {
                     if (error) {
