@@ -6,6 +6,8 @@
 //general set up
 var express = require('express');
 var app = express();
+var AWS = require('aws-sdk');
+AWS.config.loadFromPath('./config/aws.json');
 var Elasticsearch = require('aws-es');
 var bodyParser = require('body-parser');
 var Twit = require('twit')
@@ -19,6 +21,9 @@ var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
     host: 'search-hw2-tdhgyz7ioes5cxy3auanx3cbtq.us-east-1.es.amazonaws.com/'
 });
+var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+
+
 
 client.ping({
     // ping usually has a 3000ms timeout
@@ -76,6 +81,33 @@ io.sockets.on('connection', function (socket) {
                     }
                 });
 
+                var params = {
+                    DelaySeconds: 10,
+                    MessageAttributes: {
+                        "Title": {
+                            DataType: "String",
+                            StringValue: "The Whistler"
+                        },
+                        "Author": {
+                            DataType: "String",
+                            StringValue: "John Grisham"
+                        },
+                        "WeeksOn": {
+                            DataType: "Number",
+                            StringValue: "6"
+                        }
+                    },
+                    MessageBody: tweet.text,
+                    QueueUrl: "https://sqs.us-east-1.amazonaws.com/700275664603/TwittTrends"
+                };
+
+                sqs.sendMessage(params, function(err, data) {
+                    if (err) {
+                        console.log("Error", err);
+                    } else {
+                        console.log("Success", data.MessageId);
+                    }
+                });
 
                 var tw_info = {};
                 tw_info.location = {
