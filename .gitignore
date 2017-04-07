@@ -1,6 +1,6 @@
 #things don't need
-nodeServer/node_modules/
-nodeServer/config/
-.idea/
-pythonWorker/ibm_cred.py
 
+.idea/
+/nodeServer/node_modules/
+/nodeServer/config/
+/pythonWorker/ibm_cred.py
