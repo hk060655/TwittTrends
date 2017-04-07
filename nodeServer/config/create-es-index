@@ -1,0 +1,25 @@
+curl -XPUT <Elasticsearch Endpoint>/twittmap -d '
+{
+    "mappings": {
+        "tweets": {
+            "properties": {
+                "user": {
+                    "type": "string",
+                    "index": "not_analyzed"
+                },
+                "time": {
+                    "type": "date"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "geo": {
+                    "type": "geo_point"
+                },
+                "sentiment": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}'
