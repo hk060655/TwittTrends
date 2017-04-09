@@ -41,7 +41,8 @@ var client = new elasticsearch.Client({
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 var sns = new AWS.SNS({apiVersion:'2010-03-31'});
 
-
+var kafkaClient = new kafka.Client('localhost:2181');
+var producer = new Producer(kafkaClient);
 
 client.ping({
     // ping usually has a 3000ms timeout
@@ -116,8 +117,6 @@ io.sockets.on('connection', function (socket) {
 
                 // Kafka
                 //create producer
-                var kafkaClient = new kafka.Client('localhost:2181');
-                var producer = new Producer(kafkaClient);
 
                 var payloads = [
                     { topic: 'tweets', messages: JSON.stringify({

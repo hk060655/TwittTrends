@@ -9,12 +9,6 @@ import watson_developer_cloud.natural_language_understanding.features.v1 as \
 from multiprocessing import Pool
 from kafka import KafkaConsumer
 
-
-
-# conn = sqs.connect_to_region("us-east-1", aws_access_key_id='AKIAJ7OSXNTJ2ZYVZ5XQ',
-#                                   aws_secret_access_key='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')
-# q = conn.get_queue("TwittTrends")
-
 """sqs connection"""
 sqs_conn = sqs.connect_to_region("us-east-1", aws_access_key_id=key.aws['accessKeyId'],
                                   aws_secret_access_key=key.aws['secretAccessKey'])
@@ -23,7 +17,6 @@ q = sqs_conn.get_queue("twit_trend")
 """sns connection"""
 sns_conn = sns.connect_to_region("us-east-1", aws_access_key_id=key.aws['accessKeyId'],
                                    aws_secret_access_key=key.aws['secretAccessKey'])
-
 
 
 """nlu connection"""
@@ -89,7 +82,7 @@ def processMsg(parsed):
         #  u'sentiment': {u'document': {u'score': -0.546603, u'label': u'negative'}}}
 
         senti = res
-        print senti
+        # print senti
         label = senti['sentiment']['document']['label']
         print label
 
