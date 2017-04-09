@@ -13,37 +13,46 @@ var bodyParser = require('body-parser');
 var Twit = require('twit')
 var credentials = require('./config/twitter-keys').twitterKeys;
 var esCredentials = require('./config/es-keys').esKeys;
+var ibmKeys = require('./config/ibm-keys').ibmKeys;
 var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
 var elasticsearch = require('elasticsearch');
-//create producer
-var kafka = require('kafka-node'),
-    Producer = kafka.Producer,
-    client = new kafka.Client('localhost:2181'),
-    producer = new Producer(client);
 
-var payloads = [
-    { topic: 'tweets', messages: 'hi' },
-    { topic: 'tweets', messages: 'can you hear me bro' }
-];
-
-producer.on('ready', function () {
-    producer.send(payloads, function (err, data) {
-        console.log(data);
-    });
+var NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js');
+var natural_language_understanding = new NaturalLanguageUnderstandingV1({
+    'username': ibmKeys.username,
+    'password': ibmKeys.password,
+    'version_date': '2017-02-27'
 });
 
-producer.on('error', function (err) {
-    console.log("error:", err);
+//create producer
+// var kafka = require('kafka-node'),
+//     Producer = kafka.Producer,
+//     client = new kafka.Client('localhost:2181'),
+//     producer = new Producer(client);
+//
+// var payloads = [
+//     { topic: 'tweets', messages: 'hi' },
+//     { topic: 'tweets', messages: 'can you hear me bro' }
+// ];
+//
+// producer.on('ready', function () {
+//     producer.send(payloads, function (err, data) {
+//         console.log(data);
+//     });
+// });
+//
+// producer.on('error', function (err) {
+//     console.log("error:", err);
+//
+// })
+//
+// console.log("-------------------");
 
-})
 
-console.log("-------------------");
-
-
-var es_url = "search-hw2-tdhgyz7ioes5cxy3auanx3cbtq.us-east-1.es.amazonaws.com/";
+var es_url = esCredentials.host;
 var client = new elasticsearch.Client({
     host: es_url
 });
@@ -54,7 +63,7 @@ var sns = new AWS.SNS({apiVersion:'2010-03-31'});
 
 client.ping({
     // ping usually has a 3000ms timeout
-    requestTimeout: 3000
+    requestTimeout: 5000
 }, function (error) {
     if (error) {
         console.trace('elasticsearch cluster is down!');
@@ -95,6 +104,8 @@ io.sockets.on('connection', function (socket) {
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null && tweet.lang == "en") {
 
+                // console.log("------------1----------" + tweet);
+
                 var params = {
                     DelaySeconds: 10,
                     MessageAttributes: {
@@ -120,15 +131,29 @@ io.sockets.on('connection', function (socket) {
                     }
                 });
 
-                var tw_info = {};
-                tw_info.location = {
-                    //"coordinates" : [lng, lat]
-                    lat: tweet.coordinates.coordinates[1],
-                    lng: tweet.coordinates.coordinates[0],
+                var parameters = {
+                    'text': tweet.text,
+                    'features': {
+                        'sentiment': {
+                        }
+                    }
                 };
-                socket.broadcast.emit("twitter-stream", tw_info);
-                socket.emit('twitter-stream', tw_info);
 
+                natural_language_understanding.analyze(parameters, function(err, response) {
+                    if (err)
+                        console.log('error:', err);
+                    else
+                        var tw_info = {};
+                        tw_info.location = {
+                            //"coordinates" : [lng, lat]
+                            lat: tweet.coordinates.coordinates[1],
+                            lng: tweet.coordinates.coordinates[0],
+                        };
+                        // console.log("----------" + response.sentiment.document.label);
+                        tw_info.senti = response.sentiment.document.label;
+                        socket.broadcast.emit("twitter-stream", tw_info);
+                        socket.emit('twitter-stream', tw_info);
+                });
 
             }
         })
@@ -151,7 +176,7 @@ io.sockets.on('connection', function (socket) {
     // handle search request
     socket.on('search', function (keyword) {
         client.search({
-            index: 'new_tweets',
+            index: 'senti_tweets',
             type: 'tweets',
             size: 1000,
             body: {
@@ -161,7 +186,7 @@ io.sockets.on('connection', function (socket) {
             }
         }).then(function (resp) {
             var hits = resp.hits.hits;
-            console.log(hits,hits.length);
+            // console.log("hits-----------------", hits,hits.length);
             var res = [];
             for (var i = 0; i < hits.length; i++) {
                 res[i] = hits[i]._source;
@@ -211,8 +236,22 @@ app.use('/sns', function (req,res) {
         // That's where the actual messages will arrive
         var id = req.body.MessageId;
         var tweet = req.body.Message;
-        console.log(tweet);
-
+        // console.log("--------------2--------------" + (typeof JSON.parse(tweet)));
+        // console.log("--------------2--------------" + JSON.parse(tweet).text);
+        es.bulk({
+            index: 'senti_tweets',
+            type: 'tweets',
+            body: [
+                {"index": {"_index": "senti_tweets", "_type": "tweets"}},
+                JSON.parse(tweet)]
+        }, function (error, response) {
+            if (error) {
+                console.log("error: ", error);
+            }
+            else {
+                console.log("new data created");//, response.items
+            }
+        });
     }
 
 

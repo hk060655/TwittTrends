@@ -4,10 +4,14 @@
 
 var map,
     markers=[];
-var bird = "/public/twitter_bird.png";
-var blue = "/public/google-maps-gris-hi.png";
+var blueBird = "/public/blue_bird.png";
+var redBird = "/public/red_bird.png";
+var greenBird = "/public/green_bird.png";
+var bluePin = "/public/blue_pin.png";
+var redPin = "/public/red_pin.png";
+var greenPin = "/public/green_pin.png";
 
-var centerMarker;
+// var centerMarker;
 var centerLng = 0;
 var centerLat = 0;
 
@@ -18,22 +22,22 @@ function initMap() {
         center: {lat: 25, lng: 157}
     });
 
-    map.addListener('click', function(e) {
-        placeMarkerAndPanTo(e.latLng, map);
-        centerLng = e.latLng.lng();
-        centerLat = e.latLng.lat();
-    });
-
-    function placeMarkerAndPanTo(latLng, map) {
-        removeMarkers();
-        if (centerMarker != null) centerMarker.setMap(null);
-        centerMarker = new google.maps.Marker({
-            position: latLng,
-            map: map,
-            icon: blue
-        });
-        //map.panTo(latLng);
-    }
+    // map.addListener('click', function(e) {
+    //     placeMarkerAndPanTo(e.latLng, map);
+    //     centerLng = e.latLng.lng();
+    //     centerLat = e.latLng.lat();
+    // });
+    //
+    // function placeMarkerAndPanTo(latLng, map) {
+    //     removeMarkers();
+    //     if (centerMarker != null) centerMarker.setMap(null);
+    //     centerMarker = new google.maps.Marker({
+    //         position: latLng,
+    //         map: map,
+    //         icon: blue
+    //     });
+    //     //map.panTo(latLng);
+    // }
 }
 
 function removeMarkers(){
@@ -60,10 +64,20 @@ if (io !== undefined) {
         // liveTweets.push(tweetLocation);
         // console.log(liveTweets);
 
+        var Icon;
+
+        if (tweet.senti === 'positive') {
+            Icon = greenBird;
+        } else if (tweet.senti === 'neutral') {
+            Icon = blueBird;
+        } else if (tweet.senti === 'negative') {
+            Icon = redBird;
+        }
+
         var marker = new google.maps.Marker({
             position: tweetLocation,
             map: map,
-            icon: bird
+            icon: Icon
         });
         setTimeout(function () {
             marker.setMap(null);
@@ -86,19 +100,36 @@ if (io !== undefined) {
 
         for (var i = 0; i < res.results.length; i++) {
 
-            if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
-                continue;
+            // if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
+            //     continue;
+
+            var geo = res.results[i].geo.replace(/'/g, '"');
+            geo = JSON.parse(geo);
+
+             // console.log("**************" + res.results[i].senti)
 
             var loc = new google.maps.LatLng({
                 // fix the structure, working now
-                "lng": res.results[i].place.bounding_box.coordinates[0][1][0],
-                "lat": res.results[i].place.bounding_box.coordinates[0][1][1]
+                "lng": geo[1],
+                "lat": geo[0]
             });
+
+            var Icon;
+
+            if (res.results[i].senti === 'positive') {
+                Icon = greenPin;
+            } else if (res.results[i].senti === 'neutral') {
+                Icon = bluePin;
+            } else if (res.results[i].senti === 'negative') {
+                Icon = redPin;
+            }
 
             markers[markers.length] = new google.maps.Marker({
                 position: loc,
                 map: map,
+                icon: Icon
             });
+
         }
 
     });

@@ -33,8 +33,8 @@ topics = sns_conn.get_all_topics()["ListTopicsResponse"]["ListTopicsResult"]["To
 topic = topics[0]["TopicArn"]
 sns_conn.subscribe(topic=topic,protocol="http",endpoint=key.endpoint)
 
-res = sns_conn.publish(topic=topic,message="test mesg",subject="test")
-print res
+# res = sns_conn.publish(topic=topic,message="test mesg",subject="test")
+# print res
 
 
 

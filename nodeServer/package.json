@@ -18,6 +18,7 @@
     "kafka-node": "^1.6.0",
     "pug": "^2.0.0-beta11",
     "socket.io": "^1.7.3",
-    "twit": "^2.2.5"
+    "twit": "^2.2.5",
+    "watson-developer-cloud": "^2.28.1"
   }
 }
