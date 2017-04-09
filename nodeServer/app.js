@@ -10,7 +10,7 @@ var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./config/aws.json');
 var Elasticsearch = require('aws-es');
 var bodyParser = require('body-parser');
-var Twit = require('twit')
+var Twit = require('twit');
 var credentials = require('./config/twitter-keys').twitterKeys;
 var esCredentials = require('./config/es-keys').esKeys;
 var ibmKeys = require('./config/ibm-keys').ibmKeys;
@@ -33,13 +33,12 @@ var Producer = kafka.Producer;
 var intervalId;
 
 
-
 var es_url = esCredentials.host;
 var client = new elasticsearch.Client({
     host: es_url
 });
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
-var sns = new AWS.SNS({apiVersion:'2010-03-31'});
+var sns = new AWS.SNS({apiVersion: '2010-03-31'});
 
 var kafkaClient = new kafka.Client('localhost:2181');
 var producer = new Producer(kafkaClient);
@@ -60,13 +59,13 @@ client.ping({
 var T = new Twit(credentials);
 var stream = T.stream(
     'statuses/filter', {
-        track:['the','hate','love','storm','live','like','music','whatever','weather','sad'],
+        track: ['the', 'hate', 'love', 'storm', 'live', 'like', 'music', 'whatever', 'weather', 'sad'],
         //locations: [-134.91,25.76,-66.4,49.18]
-    })
+    });
 
 app.set('view engine', 'pug');
 app.use(bodyParser.json({type: 'text/plain'}));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.text({defaultCharset: 'utf-8'}));
 app.set('portListen', process.env.PORT || 8081);
 app.use("/public", express.static(__dirname + '/public'));
@@ -76,7 +75,7 @@ server.listen(process.env.PORT || 8081, function () {
     var host = server.address().address;
     var port = server.address().port;
     console.log("Example app listening at http://%s:%s", host, port);
-})
+});
 
 
 //Create web sockets connection.
@@ -119,10 +118,12 @@ io.sockets.on('connection', function (socket) {
                 //create producer
 
                 var payloads = [
-                    { topic: 'tweets', messages: JSON.stringify({
-                        "text" : tweet.text,
-                        "geo" : tweet.geo.coordinates
-                    })},
+                    {
+                        topic: 'tweets', messages: JSON.stringify({
+                        "text": tweet.text,
+                        "geo": tweet.geo.coordinates
+                    })
+                    },
                 ];
 
                 producer.on('ready', function () {
@@ -133,31 +134,30 @@ io.sockets.on('connection', function (socket) {
 
                 producer.on('error', function (err) {
                     console.log("error:", err);
-                })
+                });
 
 
                 var parameters = {
                     'text': tweet.text,
                     'features': {
-                        'sentiment': {
-                        }
+                        'sentiment': {}
                     }
                 };
 
-                natural_language_understanding.analyze(parameters, function(err, response) {
+                natural_language_understanding.analyze(parameters, function (err, response) {
                     if (err)
                         console.log('error:', err);
                     else
                         var tw_info = {};
-                        tw_info.location = {
-                            //"coordinates" : [lng, lat]
-                            lat: tweet.coordinates.coordinates[1],
-                            lng: tweet.coordinates.coordinates[0],
-                        };
-                        // console.log("----------" + response.sentiment.document.label);
-                        tw_info.senti = response.sentiment.document.label;
-                        socket.broadcast.emit("twitter-stream", tw_info);
-                        socket.emit('twitter-stream', tw_info);
+                    tw_info.location = {
+                        //"coordinates" : [lng, lat]
+                        lat: tweet.coordinates.coordinates[1],
+                        lng: tweet.coordinates.coordinates[0],
+                    };
+                    // console.log("----------" + response.sentiment.document.label);
+                    tw_info.senti = response.sentiment.document.label;
+                    socket.broadcast.emit("twitter-stream", tw_info);
+                    socket.emit('twitter-stream', tw_info);
                 });
 
             }
@@ -193,7 +193,7 @@ io.sockets.on('connection', function (socket) {
                 }
             }).then(function (resp) {
                 var hits = resp.hits.hits;
-                console.log("hits-----------------", hits,hits.length);
+                console.log("hits-----------------", hits, hits.length);
                 var res = [];
                 for (var i = 0; i < hits.length; i++) {
                     res[i] = hits[i]._source;
@@ -202,9 +202,9 @@ io.sockets.on('connection', function (socket) {
                 console.log("search results sent to client");
             }, function (err) {
                 console.log(err);
-            })
+            });
             return search;
-        } (), 3000);
+        }(), 3000);
     });
     //
 });
@@ -213,23 +213,23 @@ io.sockets.on('connection', function (socket) {
 app.get('/', function (req, res) {
     console.log("Request handler Index");
     res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']}); //'jquery.min.js',
-})
+});
 
 //index route
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
     res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']});
-})
+});
 
 //got notification from sns
-app.use('/sns', function (req,res) {
+app.use('/sns', function (req, res) {
     // SNS doesn't care about our response as long as it comes
     // with a HTTP statuscode of 200
-    res.end( 'OK' );
+    res.end('OK');
 
     var msgType = req.get('x-amz-sns-message-type');
 
-    if( msgType === 'SubscriptionConfirmation') {
+    if (msgType === 'SubscriptionConfirmation') {
         var token = req.body.Token;
         var topicArm = req.body.TopicArn;
         // console.log(token);
@@ -237,11 +237,11 @@ app.use('/sns', function (req,res) {
         sns.confirmSubscription({
             Token: token,
             TopicArn: topicArm
-        }, function(err, data) {
+        }, function (err, data) {
             if (err) console.log(err, err.stack); // an error occurred
             else     console.log(data);           // successful response
         });
-    } else if ( msgType === 'Notification' ) {
+    } else if (msgType === 'Notification') {
         // That's where the actual messages will arrive
         var id = req.body.MessageId;
         var tweet = req.body.Message;
@@ -262,6 +262,4 @@ app.use('/sns', function (req,res) {
             }
         });
     }
-
-
-})
+});

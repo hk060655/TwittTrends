@@ -145,11 +145,11 @@ document.getElementById('search').onclick = function () {
     var word = s.options[s.selectedIndex].value;
     // console.log("called search function");
     socket.emit("search", {key: word});
-}
+};
 document.getElementById('startStream').onclick = function () {
     socket.emit("start stream");
     removeMarkers();
-}
+};
 document.getElementById('endStream').onclick = function () {
     socket.emit("end stream");
-}
+};
