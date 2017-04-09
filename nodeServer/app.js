@@ -28,8 +28,6 @@ var natural_language_understanding = new NaturalLanguageUnderstandingV1({
     'version_date': '2017-02-27'
 });
 
-var Producer = kafka.Producer;
-
 var intervalId;
 
 
@@ -40,8 +38,7 @@ var client = new elasticsearch.Client({
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 var sns = new AWS.SNS({apiVersion: '2010-03-31'});
 
-var kafkaClient = new kafka.Client('localhost:2181');
-var producer = new Producer(kafkaClient);
+var Producer = kafka.Producer;
 
 client.ping({
     // ping usually has a 3000ms timeout
@@ -83,6 +80,8 @@ io.sockets.on('connection', function (socket) {
     socket.on("start stream", function () {
         console.log('Client connected !');
         stream.start();
+
+
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null && tweet.lang == "en") {
 
@@ -116,7 +115,9 @@ io.sockets.on('connection', function (socket) {
 
                 // Kafka
                 //create producer
-
+                var kafkaClient = new kafka.Client('localhost:2181');
+                var producer = new Producer(kafkaClient);
+                console.log("------------got a tweet----------");
                 var payloads = [
                     {
                         topic: 'tweets', messages: JSON.stringify({
@@ -128,7 +129,8 @@ io.sockets.on('connection', function (socket) {
 
                 producer.on('ready', function () {
                     producer.send(payloads, function (err, data) {
-                        console.log(data);
+                        // console.log(data);
+                        console.log('-----------------kafka is working-----------------');
                     });
                 });
 
@@ -193,7 +195,7 @@ io.sockets.on('connection', function (socket) {
                 }
             }).then(function (resp) {
                 var hits = resp.hits.hits;
-                console.log("hits-----------------", hits, hits.length);
+                // console.log("hits-----------------", hits, hits.length);
                 var res = [];
                 for (var i = 0; i < hits.length; i++) {
                     res[i] = hits[i]._source;
