@@ -3,4 +3,4 @@
 .idea/
 /nodeServer/node_modules/
 /nodeServer/config/
-/pythonWorker/ibm_cred.py
+/pythonWorker/config.py

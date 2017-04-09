@@ -18,12 +18,37 @@ var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
 var elasticsearch = require('elasticsearch');
+//create producer
+var kafka = require('kafka-node'),
+    Producer = kafka.Producer,
+    client = new kafka.Client('localhost:2181'),
+    producer = new Producer(client);
+
+var payloads = [
+    { topic: 'tweets', messages: 'hi' },
+    { topic: 'tweets', messages: 'can you hear me bro' }
+];
+
+producer.on('ready', function () {
+    producer.send(payloads, function (err, data) {
+        console.log(data);
+    });
+});
+
+producer.on('error', function (err) {
+    console.log("error:", err);
+
+})
+
+console.log("-------------------");
+
 
 var es_url = "search-hw2-tdhgyz7ioes5cxy3auanx3cbtq.us-east-1.es.amazonaws.com/";
 var client = new elasticsearch.Client({
     host: es_url
 });
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+var sns = new AWS.SNS({apiVersion:'2010-03-31'});
 
 
 
@@ -48,8 +73,9 @@ var stream = T.stream(
     })
 
 app.set('view engine', 'pug');
-app.use(bodyParser.json());
+app.use(bodyParser.json({type: 'text/plain'}));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.text({defaultCharset: 'utf-8'}));
 app.set('portListen', process.env.PORT || 8081);
 app.use("/public", express.static(__dirname + '/public'));
 
@@ -68,20 +94,6 @@ io.sockets.on('connection', function (socket) {
         stream.start();
         stream.on('tweet', function (tweet) {
             if (tweet.coordinates != null && tweet.lang == "en") {
-                // es.bulk({
-                //     index: 'new_tweets',
-                //     type: 'tweets',
-                //     body: [
-                //         {"index": {"_index": "new_tweets", "_type": "tweets"}},
-                //         tweet]
-                // }, function (error, response) {
-                //     if (error) {
-                //         console.log("error: ", error);
-                //     }
-                //     else {
-                //         console.log("new data created");//, response.items
-                //     }
-                // });
 
                 var params = {
                     DelaySeconds: 10,
@@ -116,6 +128,8 @@ io.sockets.on('connection', function (socket) {
                 };
                 socket.broadcast.emit("twitter-stream", tw_info);
                 socket.emit('twitter-stream', tw_info);
+
+
             }
         })
     });
@@ -171,4 +185,35 @@ app.get('/', function (req, res) {
 app.get('/index', function (req, res) {
     console.log("Request handler Index");
     res.render('index', {scripts: ['/socket.io/socket.io.js', '/public/streamTweets.js']});
+})
+
+//got notification from sns
+app.use('/sns', function (req,res) {
+    // SNS doesn't care about our response as long as it comes
+    // with a HTTP statuscode of 200
+    res.end( 'OK' );
+
+    var msgType = req.get('x-amz-sns-message-type');
+
+    if( msgType === 'SubscriptionConfirmation') {
+        var token = req.body.Token;
+        var topicArm = req.body.TopicArn;
+        // console.log(token);
+        // console.log(topicArm);
+        sns.confirmSubscription({
+            Token: token,
+            TopicArn: topicArm
+        }, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else     console.log(data);           // successful response
+        });
+    } else if ( msgType === 'Notification' ) {
+        // That's where the actual messages will arrive
+        var id = req.body.MessageId;
+        var tweet = req.body.Message;
+        console.log(tweet);
+
+    }
+
+
 })
