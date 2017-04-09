@@ -103,10 +103,15 @@ if (io !== undefined) {
             // if ((centerMarker != null) && (Math.pow(centerLng - res.results[i].place.bounding_box.coordinates[0][1][0], 2) + Math.pow(centerLat - res.results[i].place.bounding_box.coordinates[0][1][1], 2) > 100))
             //     continue;
 
-            var geo = res.results[i].geo.replace(/'/g, '"');
-            geo = JSON.parse(geo);
+            // SNS
+            // var geo = res.results[i].geo.replace(/'/g, '"');
+            // geo = JSON.parse(geo);
 
-             // console.log("**************" + res.results[i].senti)
+            // Kafka
+            var geo = res.results[i].geo;
+
+
+            // console.log("**************" + res.results[i].senti)
 
             var loc = new google.maps.LatLng({
                 // fix the structure, working now

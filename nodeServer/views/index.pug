@@ -8,21 +8,21 @@ html
             }
     body
         h1= "TwittTrends"
-        h4= "Please select a word you want to search in tweets. Sentiment representation: green stands for positive, blue stands for neutral, red stands for negative"
+        h4= "Sentiment representation: green stands for positive, blue stands for neutral, red stands for negative"
         button#startStream(type='button') Start Stream
         button#endStream(type='button') End Stream
         form
             select#select(name="selection")
-                option(value="america") america
-                option(value="strong") strong
-                option(value="technology") technology
+                option(value="the") the
+                option(value="hate") hate
+                option(value="love") love
                 option(value="storm") storm
                 option(value="live") live
                 option(value="like") like
                 option(value="music") music
-                option(value="google") google
+                option(value="whatever") whatever
                 option(value="weather") weather
-                option(value="sports") sports
+                option(value="sad") sad
             input#search(type="button" value="Search")
             hr
         div(id="map")

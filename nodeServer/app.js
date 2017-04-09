@@ -19,6 +19,7 @@ var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var es = new Elasticsearch(esCredentials);
 var elasticsearch = require('elasticsearch');
+var kafka = require('kafka-node');
 
 var NaturalLanguageUnderstandingV1 = require('watson-developer-cloud/natural-language-understanding/v1.js');
 var natural_language_understanding = new NaturalLanguageUnderstandingV1({
@@ -27,29 +28,10 @@ var natural_language_understanding = new NaturalLanguageUnderstandingV1({
     'version_date': '2017-02-27'
 });
 
-//create producer
-// var kafka = require('kafka-node'),
-//     Producer = kafka.Producer,
-//     client = new kafka.Client('localhost:2181'),
-//     producer = new Producer(client);
-//
-// var payloads = [
-//     { topic: 'tweets', messages: 'hi' },
-//     { topic: 'tweets', messages: 'can you hear me bro' }
-// ];
-//
-// producer.on('ready', function () {
-//     producer.send(payloads, function (err, data) {
-//         console.log(data);
-//     });
-// });
-//
-// producer.on('error', function (err) {
-//     console.log("error:", err);
-//
-// })
-//
-// console.log("-------------------");
+var Producer = kafka.Producer;
+
+var intervalId;
+
 
 
 var es_url = esCredentials.host;
@@ -77,7 +59,7 @@ client.ping({
 var T = new Twit(credentials);
 var stream = T.stream(
     'statuses/filter', {
-        track:['rich','power','wall','technology','america','strong','storm','live','like','music','google','weather','sports'],
+        track:['the','hate','love','storm','live','like','music','whatever','weather','sad'],
         //locations: [-134.91,25.76,-66.4,49.18]
     })
 
@@ -106,30 +88,54 @@ io.sockets.on('connection', function (socket) {
 
                 // console.log("------------1----------" + tweet);
 
-                var params = {
-                    DelaySeconds: 10,
-                    MessageAttributes: {
-                        "ID": {
-                            DataType: "String",
-                            StringValue: tweet.id_str
-                        },
-                        "geo": {
-                            DataType: "String",
-                            StringValue: JSON.stringify(tweet.geo.coordinates)
-                        }
-                    },
-                    MessageBody: tweet.text,
-                    // QueueUrl: "https://sqs.us-east-1.amazonaws.com/700275664603/TwittTrends"
-                    QueueUrl: "https://sqs.us-east-1.amazonaws.com/158318011312/twit_trend"
-                };
+                // SQS
+                // var params = {
+                //     DelaySeconds: 10,
+                //     MessageAttributes: {
+                //         "ID": {
+                //             DataType: "String",
+                //             StringValue: tweet.id_str
+                //         },
+                //         "geo": {
+                //             DataType: "String",
+                //             StringValue: JSON.stringify(tweet.geo.coordinates)
+                //         }
+                //     },
+                //     MessageBody: tweet.text,
+                //     // QueueUrl: "https://sqs.us-east-1.amazonaws.com/700275664603/TwittTrends"
+                //     QueueUrl: "https://sqs.us-east-1.amazonaws.com/158318011312/twit_trend"
+                // };
+                //
+                // sqs.sendMessage(params, function(err, data) {
+                //     if (err) {
+                //         console.log("Error", err);
+                //     } else {
+                //         console.log("Success", data.MessageId);
+                //     }
+                // });
 
-                sqs.sendMessage(params, function(err, data) {
-                    if (err) {
-                        console.log("Error", err);
-                    } else {
-                        console.log("Success", data.MessageId);
-                    }
+                // Kafka
+                //create producer
+                var kafkaClient = new kafka.Client('localhost:2181');
+                var producer = new Producer(kafkaClient);
+
+                var payloads = [
+                    { topic: 'tweets', messages: JSON.stringify({
+                        "text" : tweet.text,
+                        "geo" : tweet.geo.coordinates
+                    })},
+                ];
+
+                producer.on('ready', function () {
+                    producer.send(payloads, function (err, data) {
+                        console.log(data);
+                    });
                 });
+
+                producer.on('error', function (err) {
+                    console.log("error:", err);
+                })
+
 
                 var parameters = {
                     'text': tweet.text,
@@ -175,27 +181,31 @@ io.sockets.on('connection', function (socket) {
 
     // handle search request
     socket.on('search', function (keyword) {
-        client.search({
-            index: 'senti_tweets',
-            type: 'tweets',
-            size: 1000,
-            body: {
-                query: {
-                    match: {"text": keyword.key},
+        clearInterval(intervalId);
+        intervalId = setInterval(function search() {
+            client.search({
+                index: 'test_tweets',
+                type: 'tweets',
+                size: 20,
+                body: {
+                    query: {
+                        match: {"text": keyword.key},
+                    }
                 }
-            }
-        }).then(function (resp) {
-            var hits = resp.hits.hits;
-            // console.log("hits-----------------", hits,hits.length);
-            var res = [];
-            for (var i = 0; i < hits.length; i++) {
-                res[i] = hits[i]._source;
-            }
-            socket.emit("search results", {results: res});
-            console.log("search results sent to client");
-        }, function (err) {
-            console.log(err);
-        })
+            }).then(function (resp) {
+                var hits = resp.hits.hits;
+                console.log("hits-----------------", hits,hits.length);
+                var res = [];
+                for (var i = 0; i < hits.length; i++) {
+                    res[i] = hits[i]._source;
+                }
+                socket.emit("search results", {results: res});
+                console.log("search results sent to client");
+            }, function (err) {
+                console.log(err);
+            })
+            return search;
+        } (), 3000);
     });
     //
 });
@@ -239,10 +249,10 @@ app.use('/sns', function (req,res) {
         // console.log("--------------2--------------" + (typeof JSON.parse(tweet)));
         // console.log("--------------2--------------" + JSON.parse(tweet).text);
         es.bulk({
-            index: 'senti_tweets',
+            index: 'test_tweets',
             type: 'tweets',
             body: [
-                {"index": {"_index": "senti_tweets", "_type": "tweets"}},
+                {"index": {"_index": "test_tweets", "_type": "tweets"}},
                 JSON.parse(tweet)]
         }, function (error, response) {
             if (error) {
