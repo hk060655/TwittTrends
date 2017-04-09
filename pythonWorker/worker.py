@@ -6,6 +6,7 @@ import json
 from watson_developer_cloud import NaturalLanguageUnderstandingV1
 import watson_developer_cloud.natural_language_understanding.features.v1 as \
     features
+from multiprocessing import Pool
 
 
 # conn = sqs.connect_to_region("us-east-1", aws_access_key_id='AKIAJ7OSXNTJ2ZYVZ5XQ',
@@ -38,10 +39,9 @@ sns_conn.subscribe(topic=topic,protocol="http",endpoint=key.endpoint)
 
 
 
-while True:
-    for m in q.get_messages(message_attributes=['ID', 'geo']):
+def processMsg(msg):
+    for m in msg:
         try:
-
             text = m.get_body()
             geo = m.message_attributes["geo"]["string_value"]
             print '%s: %s' % (m, text)
@@ -67,3 +67,12 @@ while True:
             q.delete_message(m)
 
     time.sleep(5)
+
+
+if __name__ == '__main__':
+
+    pool = Pool(processes=5)
+
+    while True:
+        pool.apply(processMsg, (q.get_messages(message_attributes=['ID', 'geo']), ))
+        print "process once"
